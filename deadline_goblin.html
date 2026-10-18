@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DEADLINE GOBLIN</title>
+<style>
+:root{--bg:#171222;--panel:#251b35;--ink:#fff4df;--muted:#c6b5d8;--pink:#ff77a8;--lime:#c8ff72;--yellow:#ffd166;--red:#ff5d73;--blue:#83e6ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 0,#43234d 0,#171222 48%,#0e0b16 100%);font-family:ui-rounded,system-ui,-apple-system,sans-serif;color:var(--ink);padding:18px;display:flex;justify-content:center}main{width:min(100%,920px)}header{text-align:center;margin:4px 0 18px}h1{font-size:clamp(1.8rem,5vw,3.1rem);line-height:1;margin:0;font-weight:1000;letter-spacing:-.04em}h1 span{color:var(--lime)}header p{color:var(--muted);margin:10px 0 0}.layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px}.panel{background:#21182eeF;border:1px solid #65436d;border-radius:18px;padding:13px;box-shadow:0 14px 38px #0005}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.stat{background:#30223f;border:1px solid #62476d;border-radius:12px;padding:8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}.stat b{font-size:1.25rem}.stat b.pink{color:var(--pink)}.stat b.lime{color:var(--lime)}canvas{width:100%;height:auto;display:block;border-radius:12px;background:#171222;border:1px solid #65436d}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}button{font:inherit;font-weight:850;color:var(--ink);background:#473054;border:1px solid #855b91;padding:10px 12px;border-radius:11px;cursor:pointer}button:hover{filter:brightness(1.18)}button:focus-visible{outline:3px solid var(--lime);outline-offset:2px}.primary{background:var(--lime);color:#20172a;border-color:var(--lime)}.status{margin-top:10px;min-height:52px;background:#30223f;border:1px dashed #855b91;border-radius:12px;padding:10px;font-size:.9rem;line-height:1.4}.side h2{font-size:1rem;color:var(--lime);margin:4px 0 7px}.side p,.side li{font-size:.87rem;line-height:1.5;color:#e3d6ec}.side ul{padding-left:18px;margin-top:4px}.tag{display:inline-block;border-radius:7px;padding:2px 6px;font-weight:900}.lime{background:var(--lime);color:#20172a}.pink{background:var(--pink);color:#20172a}.yellow{background:var(--yellow);color:#20172a}.controls{display:none;grid-template-columns:repeat(3,1fr);gap:6px;max-width:230px;margin:12px auto 0}.controls button{padding:12px 6px}.tiny{font-size:.75rem;color:#b7a2c8}footer{text-align:center;font-size:.74rem;color:#a58fb8;margin:12px 0}
+@media(max-width:720px){body{padding:9px}.layout{grid-template-columns:1fr}.side{order:2}.controls{display:grid}.side ul{columns:2}}
+</style>
+</head>
+<body><main>
+<header><h1>DEADLINE <span>GOBLIN</span></h1><p>11:59 PM. 40 brain cells. One suspicious group chat.</p></header>
+<div class="layout">
+<section class="panel">
+<div class="stats">
+<div class="stat"><small>Brain cells</small><b class="pink" id="brain">40</b></div>
+<div class="stat"><small>Task fragments</small><b class="lime" id="bits">0 / 5</b></div>
+<div class="stat"><small>Excuse tokens</small><b id="excuses">2</b></div>
+</div>
+<canvas id="board" width="600" height="420" aria-label="Deadline Goblin game board"></canvas>
+<div class="controls" aria-label="Movement controls"><span></span><button data-dir="0,-1">▲</button><span></span><button data-dir="-1,0">◀</button><button data-dir="0,1">▼</button><button data-dir="1,0">▶</button></div>
+<div class="actions"><button class="primary" id="excuse">🧢 Blame the Wi-Fi (Space)</button><button id="restart">↻ New Semester</button></div>
+<div class="status" id="status" role="status" aria-live="polite">Collect 5 green fragments, avoid pink groupmates, then reach the cyan UPLOAD tile. Coffee restores brain cells.</div>
+<p class="tiny">Move: WASD / arrow keys · Space: deploy one excuse · R: restart</p>
+</section>
+<aside class="panel side">
+<h2>THE LORE</h2>
+<p>You are a sleep-deprived student. Collect 5 task fragments, avoid two chaotic groupmates, then reach UPLOAD. Your groupmate has been “typing…” since Tuesday.</p>
+<h2>OBJECTS ON THE BOARD</h2>
+<ul>
+<li><span class="tag lime">✦</span> Task fragment — collect it</li>
+<li><span class="tag pink">👀</span> Groupmate — moves suspiciously</li>
+<li><span class="tag yellow">☕</span> Coffee — restores 8 brain cells</li>
+<li><span class="tag">▧</span> Procrastination pile — blocked</li>
+<li><span class="tag" style="background:var(--blue);color:#20172a">UP</span> Upload Portal — escape here</li>
+</ul>
+<h2>YOUR SPECIAL MOVE</h2><p><b>Blame the Wi-Fi:</b> spend one excuse token to freeze every groupmate for three turns. It does not actually fix your Wi-Fi. It just buys you a moment.</p>
+<h2>HOW TO WIN</h2><p><b style="color:var(--lime)">1.</b> Collect all 5 green ✦ fragments.<br><b style="color:var(--lime)">2.</b> Reach the cyan UPLOAD tile.<br><b style="color:var(--pink)">Avoid:</b> pink groupmates. They move every four turns.<br><b style="color:var(--yellow)">Coffee:</b> restores 8 brain cells.<br><b>Lose:</b> brain cells reach 0 or a groupmate catches you.</p><h2>QUICK TIP</h2><p>Use WASD / arrow keys. Press Space to freeze groupmates for 3 of their turns. You start with 40 brain cells, so you have enough moves to finish the assignment.</p>
+</aside></div>
+<footer>Original student-life comedy game · Single-file HTML/CSS/JavaScript · No libraries or server required</footer>
+</main>
+<script>
+(()=>{
+const cv=document.getElementById('board'),c=cv.getContext('2d'),W=10,H=7,S=60;
+const walls=[[2,0],[2,1],[2,2],[4,1],[5,1],[6,1],[7,3],[7,4],[3,4],[3,5],[5,5],[6,5],[8,5]];
+const fragmentStart=[[1,1],[4,0],[8,2],[5,3],[1,5]],coffeeStart=[[4,3],[8,6]];
+let player,fragments,coffees,enemies,brain,excuses,turn,ended,freeze,portal;
+const $=id=>document.getElementById(id);
+function wall(x,y){return walls.some(p=>p[0]===x&&p[1]===y)}
+function say(t){$('status').textContent=t}
+function reset(){player={x:0,y:6};fragments=fragmentStart.map(([x,y])=>({x,y,got:false}));coffees=coffeeStart.map(([x,y])=>({x,y,got:false}));enemies=[{x:9,y:0,dx:-1,dy:0},{x:9,y:3,dx:0,dy:1}];brain=40;excuses=3;turn=0;ended=false;freeze=0;portal={x:9,y:6};say('MISSION: Collect 5 green ✦ fragments, avoid the red groupmates, then reach the cyan UPLOAD tile. You have 40 brain cells; coffee restores 8.');update();draw()}
+function update(){$('brain').textContent=brain;$('bits').textContent=fragments.filter(f=>f.got).length+' / 5';$('excuses').textContent=excuses}
+function valid(x,y){return x>=0&&x<W&&y>=0&&y<H&&!wall(x,y)}
+function move(dx,dy){if(ended)return;let x=player.x+dx,y=player.y+dy;if(!valid(x,y)){say('That way is blocked by procrastination. Try literally any other direction.');return}player={x,y};brain--;turn++;let msg='';
+fragments.forEach(f=>{if(!f.got&&f.x===x&&f.y===y){f.got=true;msg='Task fragment collected! Progress saved by approximately 20%. ';}});
+coffees.forEach(q=>{if(!q.got&&q.x===x&&q.y===y){q.got=true;brain=Math.min(40,brain+8);msg+='Coffee acquired: +8 brain cells. It is mostly anxiety in a cup. ';}});
+if(x===portal.x&&y===portal.y){if(fragments.every(f=>f.got)){ended=true;say('SUBMITTED! 11:58 PM. You are now legally allowed to say “I work best under pressure.” Brain cells left: '+brain+'.');update();draw();return}else msg+='UPLOAD LOCKED: collect all 5 green task fragments first.';}
+const collided=enemies.find(e=>e.x===x&&e.y===y);
+if(collided){
+  brain=Math.max(0,brain-4);
+  collided.x=collided===enemies[0]?9:9;
+  collided.y=collided===enemies[0]?0:3;
+  msg+=' GROUP CHAT COLLISION! -4 brain cells. Your groupmate wandered off again.';
+}
+if(freeze>0){freeze--; if(freeze===0) msg+=' Wi-Fi excuse expired; groupmates are moving again.';}else moveEnemies();
+if(brain<=0){brain=0;ended=true;say('BRAIN BUFFERING… You stared at the same sentence for 27 minutes. Game over.');}
+else if(!msg)msg=['You opened the document and immediately checked your phone.','Your cursor blinks with judgement.','The group chat says “any updates?” No.','You have renamed the file Final_FINAL_v7_REAL.docx.'][turn%4];
+say(msg);update();draw()}
+function moveEnemies(){if(turn%4!==0)return;enemies.forEach((e,i)=>{const opts=[[e.dx,e.dy],[-e.dy,e.dx],[e.dy,-e.dx],[-e.dx,-e.dy]];for(const [dx,dy] of opts){let x=e.x+dx,y=e.y+dy;if(valid(x,y)&&!(x===portal.x&&y===portal.y)&&!(x===player.x&&y===player.y)){e.x=x;e.y=y;e.dx=dx;e.dy=dy;break}}})}
+function excuse(){if(ended)return;if(excuses<=0){say('You have used every excuse. Even “my dog ate my laptop” is off the table.');return}excuses--;freeze=3;say('WI-FI EXCUSE DEPLOYED! Groupmates will skip their next three movement turns. Your router remains innocent.');update();draw()}
+function draw(){c.clearRect(0,0,600,420);c.fillStyle='#171222';c.fillRect(0,0,600,420);
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){c.fillStyle=(x+y)%2?'#241a32':'#1d162b';c.fillRect(x*S,y*S,S,S);c.strokeStyle='#3d2c4c';c.strokeRect(x*S,y*S,S,S)}
+walls.forEach(([x,y])=>{c.fillStyle='#58415f';c.fillRect(x*S+4,y*S+4,S-8,S-8);c.fillStyle='#80618a';c.font='bold 20px system-ui';c.textAlign='center';c.fillText('Zz',x*S+30,y*S+35)});
+c.fillStyle='#83e6ff';c.fillRect(portal.x*S+6,portal.y*S+6,S-12,S-12);c.fillStyle='#171222';c.font='bold 14px system-ui';c.textAlign='center';c.fillText('UPLOAD',portal.x*S+30,portal.y*S+27);c.fillText('↑',portal.x*S+30,portal.y*S+45);
+fragments.forEach(f=>{if(!f.got){c.fillStyle='#c8ff72';c.beginPath();c.moveTo(f.x*S+30,f.y*S+9);c.lineTo(f.x*S+48,f.y*S+30);c.lineTo(f.x*S+30,f.y*S+49);c.lineTo(f.x*S+12,f.y*S+30);c.closePath();c.fill();c.fillStyle='#29331c';c.font='bold 14px system-ui';c.fillText('✦',f.x*S+30,f.y*S+35)}});
+coffees.forEach(q=>{if(!q.got){c.fillStyle='#ffd166';c.beginPath();c.roundRect(q.x*S+15,q.y*S+17,29,26,5);c.fill();c.strokeStyle='#ffd166';c.lineWidth=3;c.beginPath();c.arc(q.x*S+45,q.y*S+28,7,-Math.PI/2,Math.PI/2);c.stroke();c.fillStyle='#38243a';c.font='bold 12px system-ui';c.fillText('ZAP',q.x*S+29,q.y*S+34)}});
+enemies.forEach(e=>{c.fillStyle='#ff77a8';c.beginPath();c.arc(e.x*S+30,e.y*S+30,20,0,Math.PI*2);c.fill();c.fillStyle='#25172d';c.beginPath();c.arc(e.x*S+23,e.y*S+27,3,0,Math.PI*2);c.arc(e.x*S+37,e.y*S+27,3,0,Math.PI*2);c.fill();c.strokeStyle='#25172d';c.lineWidth=2;c.beginPath();c.arc(e.x*S+30,e.y*S+35,7,0,Math.PI);c.stroke()});
+c.fillStyle='#fff4df';c.beginPath();c.roundRect(player.x*S+10,player.y*S+9,40,42,10);c.fill();c.fillStyle='#34233f';c.font='bold 20px system-ui';c.fillText('ಠ',player.x*S+30,player.y*S+30);c.font='bold 12px system-ui';c.fillText('YOU',player.x*S+30,player.y*S+44);
+if(ended){c.fillStyle='#120c1be8';c.fillRect(0,0,600,420);c.textAlign='center';c.fillStyle=fragments.every(f=>f.got)&&player.x===portal.x&&player.y===portal.y?'#c8ff72':'#ff77a8';c.font='1000 30px system-ui';c.fillText(fragments.every(f=>f.got)&&player.x===portal.x&&player.y===portal.y?'ASSIGNMENT SUBMITTED':'SEMESTER: COOKED',300,190);c.fillStyle='#fff4df';c.font='16px system-ui';c.fillText('If you lose, press New Semester to retry',300,222)}}
+window.addEventListener('keydown',e=>{let k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k==='arrowup'||k==='w')move(0,-1);else if(k==='arrowdown'||k==='s')move(0,1);else if(k==='arrowleft'||k==='a')move(-1,0);else if(k==='arrowright'||k==='d')move(1,0);else if(k===' ')excuse();else if(k==='r')reset()});
+$('excuse').onclick=excuse;$('restart').onclick=reset;document.querySelectorAll('[data-dir]').forEach(b=>b.onclick=()=>{let [x,y]=b.dataset.dir.split(',').map(Number);move(x,y)});reset();
+})();
+</script></body></html>
