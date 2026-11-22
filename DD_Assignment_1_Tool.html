@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Detectives — Assignment 1: Allocation Report</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#172033}
+header{background:#172033;color:#fff;padding:24px 28px}header h1{margin:0 0 6px;font-size:24px}header p{margin:0;color:#cbd5e1}
+main{max-width:1400px;margin:22px auto;padding:0 18px}.card{background:#fff;border:1px solid #dbe2ea;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px #0000000b}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab{border:1px solid #cbd5e1;background:#fff;padding:9px 14px;border-radius:8px;cursor:pointer}.tab.active{background:#2563eb;color:#fff;border-color:#2563eb}
+button{border:0;border-radius:8px;padding:9px 14px;background:#2563eb;color:#fff;cursor:pointer;font-weight:600}button.secondary{background:#64748b}button.danger{background:#dc2626}button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{padding:9px 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff}input[type=file]{max-width:320px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}.stat{background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:12px}.stat b{display:block;font-size:20px;margin-top:4px}
+.notice{padding:11px 13px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;margin-top:12px}.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}.ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+.hidden{display:none!important}.section{margin-top:14px}.muted{color:#64748b;font-size:13px}.tablewrap{overflow:auto;max-height:520px;border:1px solid #e2e8f0;border-radius:8px}table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:7px 9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}th{position:sticky;top:0;background:#eef2f7;z-index:1}.pill{display:inline-block;background:#e2e8f0;border-radius:999px;padding:4px 8px;margin:3px;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+canvas{width:100%;height:300px;border:1px solid #e2e8f0;border-radius:8px}
+pre{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;font-size:12px}
+</style>
+</head>
+<body>
+<header><h1>Data Detectives — Assignment 1: Allocation Report</h1><p>Reusable CSV analysis tool • T1–T6</p></header>
+<main>
+<div class="card">
+  <div class="row">
+    <input id="file" type="file" accept=".csv,text/csv">
+    <button id="load">Upload / Load CSV</button>
+    <button id="reset" class="secondary">Reset</button>
+  </div>
+  <div id="status" class="notice">Choose the original Resource_Allocation_Records.csv file, then click Upload / Load CSV.</div>
+  <div id="overview" class="stats hidden"></div>
+</div>
+
+<div class="tabs">
+<button class="tab active" data-tab="t1">T1 Overview</button>
+<button class="tab" data-tab="t2">T2 Records</button>
+<button class="tab" data-tab="t3">T3 Data Quality</button>
+<button class="tab" data-tab="t4">T4 Statistics</button>
+<button class="tab" data-tab="t5">T5 Charts & Outliers</button>
+<button class="tab" data-tab="t6">T6 Export</button>
+</div>
+
+<section id="t1" class="tabcontent">
+<div class="card"><h2>T1 — Upload CSV & Dataset Overview</h2><div id="types"></div></div>
+</section>
+
+<section id="t2" class="tabcontent hidden">
+<div class="card">
+<h2>T2 — Search, Sort & Filter</h2>
+<div class="row">
+<input id="search" placeholder="Search all columns..." style="min-width:220px">
+<select id="filterCol"><option value="">Filter column</option></select>
+<input id="filterVal" placeholder="Filter value...">
+<select id="sortCol"><option value="">Sort column</option></select>
+<select id="sortDir"><option value="asc">Ascending</option><option value="desc">Descending</option></select>
+</div>
+<p class="muted" id="recordCount"></p>
+<div class="tablewrap"><table id="dataTable"></table></div>
+</div>
+</section>
+
+<section id="t3" class="tabcontent hidden">
+<div class="card"><h2>T3 — Data Quality & Cleaning</h2>
+<button id="quality">Run Quality Checks</button>
+<div id="qualityOut" class="section"></div>
+<div class="section">
+<h3>Manual edit</h3>
+<div class="row">
+<input id="editRow" type="number" min="1" placeholder="Displayed row number">
+<select id="editCol"><option value="">Column</option></select>
+<input id="editValue" placeholder="New value">
+<button id="applyEdit">Apply Edit</button>
+</div>
+<p class="muted">Every manual edit is recorded in the change log.</p>
+</div>
+</div></section>
+
+<section id="t4" class="tabcontent hidden">
+<div class="card"><h2>T4 — Descriptive Statistics</h2>
+<div class="row"><select id="statCol"><option value="">Select numeric column</option></select><button id="calcStats">Calculate</button></div>
+<div id="statsOut" class="section"></div>
+</div></section>
+
+<section id="t5" class="tabcontent hidden">
+<div class="card"><h2>T5 — Charts & 1.5×IQR Outliers</h2>
+<div class="row"><select id="chartCol"><option value="">Select numeric column</option></select><button id="makeChart">Analyze</button></div>
+<div id="chartOut" class="section"></div>
+</div></section>
+
+<section id="t6" class="tabcontent hidden">
+<div class="card"><h2>T6 — Export</h2>
+<p>Export the cleaned dataset and the change log. The original uploaded CSV is never modified.</p>
+<div class="row">
+<button id="exportClean">Export Cleaned CSV</button>
+<button id="exportLog" class="secondary">Export Change Log</button>
+<button id="exportSummary" class="secondary">Export Analysis Summary</button>
+</div>
+<div id="exportMsg" class="section"></div>
+</div></section>
+</main>
+
+<script>
+let originalRows=[], rows=[], headers=[], changeLog=[], lastQuality=null;
+
+const $=id=>document.getElementById(id);
+function setStatus(msg, cls="notice"){ $("status").className="notice "+cls; $("status").textContent=msg; }
+function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function parseCSV(text){
+  // Normalize all common line endings first. This prevents a CR-only/CRLF
+  // file from being interpreted as one giant header row in some browsers.
+  text=String(text??"").replace(/^\uFEFF/,"").replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+  const out=[]; let row=[]; let field=""; let quoted=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i], n=text[i+1];
+    if(quoted){
+      if(c==='"' && n==='"'){field+='"';i++;}
+      else if(c==='"'){quoted=false;}
+      else{field+=c;}
+    }else{
+      if(c==='"' && field===""){quoted=true;}
+      else if(c===','){row.push(field);field="";}
+      else if(c==='\n'){
+        row.push(field);field="";
+        if(row.some(v=>String(v).trim()!=="")) out.push(row);
+        row=[];
+      }else{field+=c;}
+    }
+  }
+  if(field!=="" || row.length){
+    row.push(field);
+    if(row.some(v=>String(v).trim()!=="")) out.push(row);
+  }
+  if(out.length<2) throw new Error("CSV is empty or has no data rows.");
+  const headers=out[0].map(v=>String(v).trim());
+  if(headers.length<1 || headers.every(v=>v==="")) throw new Error("CSV has no header row.");
+  const data=[];
+  for(let i=1;i<out.length;i++){
+    const r=out[i];
+    const obj={};
+    headers.forEach((h,j)=>obj[h]=r[j]??"");
+    data.push(obj);
+  }
+  // A malformed parse often produces one huge header row. Fail clearly rather
+  // than showing misleading results.
+  if(data.length===0) throw new Error("CSV contains no data rows.");
+  if(headers.length>2000) throw new Error("CSV could not be parsed correctly: too many columns detected. Please select the original CSV file.");
+  return {headers,data};
+}
+function csvCell(v){let s=String(v??""); return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function toCSV(arr, hs){return hs.map(csvCell).join(",")+"\n"+arr.map(o=>hs.map(h=>csvCell(o[h])).join(",")).join("\n")}
+function download(name, content, type="text/csv"){
+ const blob=new Blob([content],{type}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+function numericVals(col, source=rows){return source.map(r=>{const raw=String(r[col]??"").trim(); return raw===""?NaN:Number(raw)}).filter(Number.isFinite)}
+function suggestType(col){
+ const vals=rows.map(r=>String(r[col]??"").trim()).filter(Boolean);
+ if(!vals.length)return "Text";
+ const nums=vals.filter(v=>Number.isFinite(Number(v))).length;
+ if(nums/vals.length>=.9)return "Numeric";
+ const dates=vals.filter(v=>!isNaN(Date.parse(v))).length;
+ if(dates/vals.length>=.9)return "Date";
+ return "Text";
+}
+function refreshSelects(){
+ ["filterCol","sortCol","editCol","statCol","chartCol"].forEach(id=>{
+   const el=$(id); if(!el)return; const old=el.value;
+   el.innerHTML='<option value="">'+(id==="filterCol"?"Filter column":id==="sortCol"?"Sort column":id==="editCol"?"Column":"Select numeric column")+'</option>';
+   headers.forEach(h=>{const o=document.createElement("option");o.value=h;o.textContent=h;el.appendChild(o)});
+   el.value=old;
+ });
+}
+function renderOverview(){
+ $("overview").classList.remove("hidden");
+ $("overview").innerHTML=[
+ ["Rows",rows.length],["Columns",headers.length],["Duplicates",countExactDuplicates(rows)],["Missing cells",countMissing(rows)]
+ ].map(x=>`<div class="stat">${x[0]}<b>${x[1]}</b></div>`).join("");
+ $("types").innerHTML="<b>Suggested data types:</b> "+headers.map(h=>`<span class="pill">${escapeHTML(h)}: ${suggestType(h)}</span>`).join("");
+}
+function countMissing(rs){return rs.reduce((n,r)=>n+headers.filter(h=>String(r[h]??"").trim()==="").length,0)}
+function rowKey(r){return headers.map(h=>String(r[h]??"")).join("\\u001f")}
+function countExactDuplicates(rs){const s=new Set();let n=0;rs.forEach(r=>{const k=rowKey(r);if(s.has(k))n++;else s.add(k)});return n}
+function renderTable(){
+ let filtered=rows.filter(r=>{
+   const q=$("search").value.toLowerCase();
+   const fcol=$("filterCol").value, fv=$("filterVal").value.toLowerCase();
+   return (!q || headers.some(h=>String(r[h]??"").toLowerCase().includes(q))) &&
+          (!fcol || String(r[fcol]??"").toLowerCase().includes(fv));
+ });
+ const sc=$("sortCol").value, dir=$("sortDir").value;
+ if(sc)filtered.sort((a,b)=>{
+   const av=String(a[sc]??""),bv=String(b[sc]??"");
+   const an=Number(av),bn=Number(bv);
+   const cmp=(Number.isFinite(an)&&Number.isFinite(bn))?an-bn:av.localeCompare(bv);
+   return dir==="asc"?cmp:-cmp;
+ });
+ $("recordCount").textContent=`Showing ${filtered.length} of ${rows.length} records`;
+ const max=filtered.length;
+ $("dataTable").innerHTML="<thead><tr>"+["#"].concat(headers).map(h=>`<th>${escapeHTML(h)}</th>`).join("")+"</tr></thead><tbody>"+
+ filtered.map((r,i)=>"<tr><td>"+(i+1)+"</td>"+headers.map(h=>`<td>${escapeHTML(r[h])}</td>`).join("")+"</tr>").join("")+"</tbody>";
+}
+function quartiles(a){
+ a=[...a].sort((x,y)=>x-y); if(!a.length)return null;
+ const med=arr=>{const n=arr.length;return n%2?arr[(n-1)/2]:(arr[n/2-1]+arr[n/2])/2};
+ const q2=med(a), mid=Math.floor(a.length/2);
+ const low=a.length%2?a.slice(0,mid+1):a.slice(0,mid);
+ const high=a.length%2?a.slice(mid):a.slice(mid);
+ return {q1:med(low),median:q2,q3:med(high)};
+}
+function runQuality(){
+ const missing=[]; headers.forEach(h=>{const c=rows.filter(r=>String(r[h]??"").trim()==="").length;if(c)missing.push(`${h}: ${c}`)});
+ const dupMap=new Map();rows.forEach((r,i)=>{const k=rowKey(r);if(!dupMap.has(k))dupMap.set(k,[]);dupMap.get(k).push(i+1)});
+ const dups=[...dupMap.values()].filter(a=>a.length>1);
+ const invalidNumeric=[]; headers.filter(h=>suggestType(h)==="Numeric").forEach(h=>{
+   rows.forEach((r,i)=>{if(String(r[h]??"").trim()!==""&&!Number.isFinite(Number(r[h])))invalidNumeric.push(`${h} row ${i+1}: "${r[h]}"`)})
+ });
+ const idCols=headers.filter(h=>/id/i.test(h));
+ const idConf=[];
+ idCols.forEach(h=>{const m=new Map();rows.forEach((r,i)=>{const v=String(r[h]??"").trim();if(v){if(!m.has(v))m.set(v,[]);m.get(v).push(i+1)}});m.forEach((v,k)=>{if(v.length>1)idConf.push(`${h}="${k}" rows ${v.join(", ")}`)})});
+ lastQuality={missing,dups,invalidNumeric,idConf};
+ $("qualityOut").innerHTML=`<div class="notice ok">Quality checks complete. Missing cells: ${countMissing(rows)} • Duplicate groups: ${dups.length} • Duplicate rows involved: ${dups.reduce((n,a)=>n+a.length,0)} • Potential numeric-invalid cells: ${invalidNumeric.length} • Repeated ID values: ${idConf.length}</div>
+ <div class="section"><b>Missing values</b><div>${missing.length?missing.map(x=>`<span class="pill">${escapeHTML(x)}</span>`).join(""):"None detected"}</div></div>
+ <div class="section"><b>Exact duplicate records</b><div>${dups.length?dups.map(x=>`<span class="pill">Rows ${x.join(", ")}</span>`).join(""):"None detected"}</div></div>
+ <div class="section"><b>Potential invalid numeric values</b><div>${invalidNumeric.length?invalidNumeric.slice(0,300).map(x=>`<span class="pill">${escapeHTML(x)}</span>`).join(""):"None detected"}</div></div>
+ <div class="section"><b>Repeated ID values (review before changing)</b><div>${idConf.length?idConf.slice(0,300).map(x=>`<span class="pill">${escapeHTML(x)}</span>`).join(""):"None detected"}</div></div>
+ <div class="section"><button id="removeDup">Remove exact duplicate records automatically</button></div>`;
+ $("removeDup")?.addEventListener("click",removeDuplicates);
+}
+function removeDuplicates(){
+ const seen=new Set(),clean=[];
+ rows.forEach((r,i)=>{const k=rowKey(r);if(seen.has(k))changeLog.push({row:i+1,column:"*",original:JSON.stringify(r),newValue:"REMOVED",method:"Automatic correction",reason:"Exact duplicate record removed"});else{seen.add(k);clean.push(r)}});
+ rows=clean;renderOverview();renderTable();setStatus("Exact duplicates removed from the working copy. Original CSV remains unchanged.","ok");runQuality();
+}
+function applyEdit(){
+ const n=Number($("editRow").value), col=$("editCol").value, nv=$("editValue").value;
+ if(!n||!col||n<1||n>rows.length){setStatus("Enter a valid displayed row number and column.","error");return}
+ const r=rows[n-1], old=r[col]; r[col]=nv;
+ changeLog.push({row:n,column:col,original:old,newValue:nv,method:"Manual edit",reason:"User-applied correction"});
+ renderTable();renderOverview();setStatus(`Edited row ${n}, ${col}: "${old}" → "${nv}".`,"ok");
+}
+function calcStats(){
+ const c=$("statCol").value,v=numericVals(c); if(!v.length){$("statsOut").innerHTML='<div class="notice error">No valid numeric values found.</div>';return}
+ const sorted=[...v].sort((a,b)=>a-b), n=v.length, total=v.reduce((a,b)=>a+b,0), mean=total/n;
+ const q=quartiles(v), freq=new Map(v.map(x=>[x,0]));v.forEach(x=>freq.set(x,freq.get(x)+1));
+ const maxf=Math.max(...freq.values()), modes=[...freq.entries()].filter(x=>x[1]===maxf).map(x=>x[0]);
+ const sd=Math.sqrt(v.reduce((s,x)=>s+(x-mean)**2,0)/n);
+ $("statsOut").innerHTML=`<div class="stats">
+ ${[["Count",n],["Total",total],["Mean",mean],["Median",q.median],["Mode",modes.join(", ")],["Minimum",sorted[0]],["Maximum",sorted[n-1]],["Range",sorted[n-1]-sorted[0]],["Population SD",sd]].map(x=>`<div class="stat">${x[0]}<b>${typeof x[1]==="number"?x[1].toFixed(4):escapeHTML(x[1])}</b></div>`).join("")}</div>`;
+}
+function drawChart(vals,q,fences,outliers){
+ const cv=document.createElement("canvas"), ctx=cv.getContext("2d");cv.width=900;cv.height=320;
+ const min=Math.min(...vals),max=Math.max(...vals),pad=50;ctx.clearRect(0,0,900,320);
+ ctx.strokeStyle="#94a3b8";ctx.beginPath();ctx.moveTo(pad,270);ctx.lineTo(850,270);ctx.stroke();
+ const bins=20,w=(max-min||1)/bins,counts=Array(bins).fill(0);vals.forEach(x=>counts[Math.min(bins-1,Math.floor((x-min)/w))]++);
+ const mh=Math.max(...counts,1);
+ counts.forEach((c,i)=>{const x=pad+i*(800/bins),h=220*c/mh;ctx.fillStyle="#2563eb";ctx.fillRect(x,270-h,800/bins-3,h)});
+ ctx.fillStyle="#172033";ctx.font="13px Arial";ctx.fillText(`Q1 ${q.q1.toFixed(2)}   Median ${q.median.toFixed(2)}   Q3 ${q.q3.toFixed(2)}   Lower ${fences.lo.toFixed(2)}   Upper ${fences.hi.toFixed(2)}`,50,25);
+ return cv;
+}
+function analyzeOutliers(){
+ const c=$("chartCol").value,v=numericVals(c);if(!v.length){$("chartOut").innerHTML='<div class="notice error">No numeric values found.</div>';return}
+ const q=quartiles(v),iqr=q.q3-q.q1,f={lo:q.q1-1.5*iqr,hi:q.q3+1.5*iqr},out=v.filter(x=>x<f.lo||x>f.hi),inside=v.filter(x=>x>=f.lo&&x<=f.hi);
+ $("chartOut").innerHTML=`<div class="stats">${[["Q1",q.q1],["Median",q.median],["Q3",q.q3],["IQR",iqr],["Lower fence",f.lo],["Upper fence",f.hi],["Outliers",out.length],["Non-outliers",inside.length]].map(x=>`<div class="stat">${x[0]}<b>${typeof x[1]==="number"?x[1].toFixed(4):x[1]}</b></div>`).join("")}</div>
+ <div class="section grid2"><div><h3>Distribution</h3></div><div><h3>Comparison with / without outliers</h3><div id="compare"></div></div></div>`;
+ const left=$("chartOut").querySelector(".grid2>div:first-child");left.appendChild(drawChart(v,q,f,out));
+ const calc=a=>{const n=a.length,mean=a.reduce((s,x)=>s+x,0)/n;return {n,mean,sd:Math.sqrt(a.reduce((s,x)=>s+(x-mean)**2,0)/n)}};
+ const a=calc(v),b=calc(inside);
+ $("compare").innerHTML=`<table><thead><tr><th>Measure</th><th>With outliers</th><th>Without outliers</th></tr></thead><tbody>
+ <tr><td>Count</td><td>${a.n}</td><td>${b.n}</td></tr><tr><td>Mean</td><td>${a.mean.toFixed(4)}</td><td>${b.mean.toFixed(4)}</td></tr><tr><td>Population SD</td><td>${a.sd.toFixed(4)}</td><td>${b.sd.toFixed(4)}</td></tr></tbody></table>`;
+}
+function summaryText(){
+ return `Data Detectives — Assignment 1\\nRows: ${rows.length}\\nColumns: ${headers.length}\\nMissing cells: ${countMissing(rows)}\\nExact duplicate groups: ${countExactDuplicates(rows)}\\nChange-log entries: ${changeLog.length}\\n\\nThis summary is generated from the current working copy.`;
+}
+$("load").addEventListener("click",()=>{
+ const f=$("file").files[0]; if(!f){setStatus("Please choose the CSV file first.","error");return}
+ const reader=new FileReader();
+ reader.onload=()=>{try{
+   const parsed=parseCSV(reader.result);headers=parsed.headers;originalRows=parsed.data.map(r=>({...r}));rows=parsed.data.map(r=>({...r}));changeLog=[];
+   refreshSelects();renderOverview();renderTable();setStatus(`Loaded ${f.name}: ${rows.length} rows × ${headers.length} columns.`,"ok");
+ }catch(e){setStatus("Could not read CSV: "+e.message,"error")}};
+ reader.onerror=()=>setStatus("Could not read the selected file.","error");
+ reader.readAsText(f,"UTF-8");
+});
+$("reset").addEventListener("click",()=>location.reload());
+["search","filterVal","filterCol","sortCol","sortDir"].forEach(id=>$(id).addEventListener("input",renderTable));
+$("quality").addEventListener("click",runQuality);
+$("applyEdit").addEventListener("click",applyEdit);
+$("calcStats").addEventListener("click",calcStats);
+$("makeChart").addEventListener("click",analyzeOutliers);
+$("exportClean").addEventListener("click",()=>{if(!rows.length)return setStatus("Load the CSV first.","error");download("cleaned_resource_allocation_records.csv",toCSV(rows,headers))});
+$("exportLog").addEventListener("click",()=>{const hs=["row","column","original","newValue","method","reason"];download("change_log.csv",toCSV(changeLog,hs))});
+$("exportSummary").addEventListener("click",()=>download("analysis_summary.txt",summaryText(),"text/plain"));
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tabcontent").forEach(x=>x.classList.add("hidden"));b.classList.add("active");$(b.dataset.tab).classList.remove("hidden")}));
+</script>
+</body>
+</html>
